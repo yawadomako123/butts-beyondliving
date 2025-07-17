@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { CartItem } from "./Cart";
+import { supabase } from "@/integrations/supabase/client";
 
 interface CheckoutFormProps {
   isOpen: boolean;
@@ -55,9 +56,35 @@ export const CheckoutForm = ({
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
-    await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate order processing
-    onPlaceOrder(formData as OrderData);
-    setIsSubmitting(false);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('create-payment', {
+        body: {
+          items: items,
+          customerEmail: formData.email,
+          customerName: `${formData.firstName} ${formData.lastName}`,
+          customerAddress: {
+            street: formData.address,
+            city: formData.city,
+            state: formData.state,
+            zip: formData.zipCode
+          }
+        }
+      });
+
+      if (error) throw error;
+      
+      if (data?.url) {
+        // Open Stripe checkout in a new tab
+        window.open(data.url, '_blank');
+        onPlaceOrder(formData as OrderData);
+      }
+    } catch (error) {
+      console.error('Payment error:', error);
+      alert('Payment processing failed. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -257,9 +284,9 @@ export const CheckoutForm = ({
                         <CreditCard className="w-5 h-5" />
                         Payment Information
                       </h3>
-                      <div className="p-4 bg-warning/10 border border-warning/20 rounded-lg">
-                        <p className="text-sm text-warning-foreground">
-                          <strong>Demo Mode:</strong> This is a demonstration. No real payments will be processed.
+                      <div className="p-4 bg-primary/10 border border-primary/20 rounded-lg">
+                        <p className="text-sm text-primary-foreground">
+                          <strong>Secure Payment:</strong> Your payment will be processed securely through Stripe.
                         </p>
                       </div>
                       <div className="space-y-4">
