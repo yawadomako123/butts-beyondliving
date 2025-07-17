@@ -1,16 +1,38 @@
-import { useState } from "react";
-import { ShoppingCart, Search, Menu, X, User } from "lucide-react";
+import { useState, useEffect } from "react";
+import { ShoppingCart, Search, Menu, X, User, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { supabase } from "@/integrations/supabase/client";
+import { User as SupabaseUser } from "@supabase/supabase-js";
 
 interface HeaderProps {
   cartItemsCount: number;
   onCartClick: () => void;
+  onAuthClick: () => void;
 }
 
-export const Header = ({ cartItemsCount, onCartClick }: HeaderProps) => {
+export const Header = ({ cartItemsCount, onCartClick, onAuthClick }: HeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [user, setUser] = useState<SupabaseUser | null>(null);
+
+  useEffect(() => {
+    // Get initial user
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setUser(user);
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+  };
 
   return (
     <header className="bg-background border-b border-border sticky top-0 z-50 backdrop-blur-sm bg-background/80">
@@ -46,18 +68,30 @@ export const Header = ({ cartItemsCount, onCartClick }: HeaderProps) => {
 
           {/* Right Side Icons */}
           <div className="flex items-center space-x-4">
-            <Button variant="ghost" size="sm" className="hidden md:flex">
-              <User className="w-4 h-4" />
-              Account
-            </Button>
+            {user ? (
+              <div className="hidden md:flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">
+                  Welcome, {user.user_metadata?.full_name || user.email}
+                </span>
+                <Button variant="ghost" size="sm" onClick={handleSignOut}>
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Sign Out
+                </Button>
+              </div>
+            ) : (
+              <Button variant="ghost" size="sm" className="hidden md:flex" onClick={onAuthClick}>
+                <User className="w-4 h-4 mr-2" />
+                Sign In
+              </Button>
+            )}
             
             <Button
-              variant="cart"
+              variant="hero"
               size="sm"
               onClick={onCartClick}
               className="relative"
             >
-              <ShoppingCart className="w-4 h-4" />
+              <ShoppingCart className="w-4 h-4 mr-2" />
               Cart
               {cartItemsCount > 0 && (
                 <Badge className="absolute -top-2 -right-2 bg-warning text-warning-foreground min-w-5 h-5 flex items-center justify-center text-xs">
@@ -98,10 +132,17 @@ export const Header = ({ cartItemsCount, onCartClick }: HeaderProps) => {
               <a href="#" className="block px-3 py-2 text-foreground hover:text-primary">Accessories</a>
               <a href="#" className="block px-3 py-2 text-foreground hover:text-primary">Deals</a>
               <div className="pt-2">
-                <Button variant="ghost" className="w-full justify-start">
-                  <User className="w-4 h-4 mr-2" />
-                  Account
-                </Button>
+                {user ? (
+                  <Button variant="ghost" className="w-full justify-start" onClick={handleSignOut}>
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Sign Out
+                  </Button>
+                ) : (
+                  <Button variant="ghost" className="w-full justify-start" onClick={onAuthClick}>
+                    <User className="w-4 h-4 mr-2" />
+                    Sign In
+                  </Button>
+                )}
               </div>
             </div>
           </div>

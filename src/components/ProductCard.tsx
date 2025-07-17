@@ -7,14 +7,15 @@ import { Badge } from "@/components/ui/badge";
 export interface Product {
   id: string;
   name: string;
-  price: number;
-  originalPrice?: number;
-  image: string;
-  rating: number;
-  reviews: number;
-  category: string;
-  badge?: string;
   description: string;
+  price: number;
+  original_price?: number;
+  image_url: string;
+  rating: number;
+  reviews_count: number;
+  badge?: string;
+  in_stock: boolean;
+  category_id: string;
 }
 
 interface ProductCardProps {
@@ -32,15 +33,15 @@ export const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
     setIsLoading(false);
   };
 
-  const discountPercentage = product.originalPrice 
-    ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
+  const discountPercentage = product.original_price 
+    ? Math.round(((product.original_price - product.price) / product.original_price) * 100)
     : null;
 
   return (
     <Card className="group relative overflow-hidden bg-gradient-card border-0 shadow-product hover:shadow-hover transition-all duration-300 hover:-translate-y-1">
       <div className="relative overflow-hidden">
         <img
-          src={product.image}
+          src={product.image_url}
           alt={product.name}
           className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105"
         />
@@ -75,7 +76,7 @@ export const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
                 />
               ))}
             </div>
-            <span className="text-xs text-muted-foreground">({product.reviews})</span>
+            <span className="text-xs text-muted-foreground">({product.reviews_count})</span>
           </div>
 
           <h3 className="font-semibold text-sm line-clamp-2 min-h-[2.5rem] text-foreground group-hover:text-primary transition-colors">
@@ -90,9 +91,9 @@ export const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
             <span className="font-bold text-lg text-foreground">
               ${product.price.toFixed(2)}
             </span>
-            {product.originalPrice && (
+            {product.original_price && (
               <span className="text-sm text-muted-foreground line-through">
-                ${product.originalPrice.toFixed(2)}
+                ${product.original_price.toFixed(2)}
               </span>
             )}
           </div>

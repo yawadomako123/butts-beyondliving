@@ -71,7 +71,7 @@ export const Cart = ({
                       className="flex gap-3 p-3 bg-muted/30 rounded-lg border animate-scale-in"
                     >
                       <img
-                        src={item.image}
+                        src={item.image_url}
                         alt={item.name}
                         className="w-16 h-16 object-cover rounded-md"
                       />

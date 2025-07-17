@@ -1,64 +1,74 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/Header";
 import { ProductCard, Product } from "@/components/ProductCard";
 import { Cart, CartItem } from "@/components/Cart";
 import { CheckoutForm, OrderData } from "@/components/CheckoutForm";
+import { AuthModal } from "@/components/AuthModal";
+import { CategoryFilter } from "@/components/CategoryFilter";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import heroImage from "@/assets/hero-tech.jpg";
 
-const sampleProducts: Product[] = [
-  {
-    id: "1",
-    name: "MacBook Pro 16-inch M3 Pro",
-    price: 2499.99,
-    originalPrice: 2699.99,
-    image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=400",
-    rating: 4.8,
-    reviews: 124,
-    category: "Laptops",
-    badge: "Bestseller",
-    description: "Powerful laptop with M3 Pro chip, 18GB RAM, 512GB SSD"
-  },
-  {
-    id: "2", 
-    name: "iPhone 15 Pro Max 256GB",
-    price: 1199.99,
-    image: "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=400",
-    rating: 4.7,
-    reviews: 89,
-    category: "Phones",
-    description: "Latest iPhone with titanium design and advanced camera system"
-  },
-  {
-    id: "3",
-    name: "Sony WH-1000XM5 Headphones",
-    price: 349.99,
-    originalPrice: 399.99,
-    image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400",
-    rating: 4.9,
-    reviews: 256,
-    category: "Audio",
-    badge: "Sale",
-    description: "Industry-leading noise canceling wireless headphones"
-  },
-  {
-    id: "4",
-    name: "iPad Air 11-inch M2",
-    price: 799.99,
-    image: "https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=400", 
-    rating: 4.6,
-    reviews: 67,
-    category: "Tablets",
-    description: "Powerful and versatile tablet with M2 chip and stunning display"
-  }
-];
+interface Category {
+  id: string;
+  name: string;
+  description: string;
+}
 
 const Index = () => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+
+  useEffect(() => {
+    fetchCategoriesAndProducts();
+  }, []);
+
+  const fetchCategoriesAndProducts = async () => {
+    try {
+      setIsLoading(true);
+      
+      // Fetch categories
+      const { data: categoriesData, error: categoriesError } = await supabase
+        .from('categories')
+        .select('*')
+        .order('name');
+
+      if (categoriesError) throw categoriesError;
+
+      // Fetch products
+      const { data: productsData, error: productsError } = await supabase
+        .from('products')
+        .select('*')
+        .eq('in_stock', true)
+        .order('created_at', { ascending: false });
+
+      if (productsError) throw productsError;
+
+      setCategories(categoriesData || []);
+      setProducts(productsData || []);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to load products. Please refresh the page.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const filteredProducts = selectedCategory
+    ? products.filter(product => product.category_id === selectedCategory)
+    : products;
 
   const addToCart = (product: Product) => {
     setCartItems(prev => {
@@ -112,6 +122,7 @@ const Index = () => {
       <Header 
         cartItemsCount={cartItemsCount}
         onCartClick={() => setIsCartOpen(true)}
+        onAuthClick={() => setIsAuthOpen(true)}
       />
 
       {/* Hero Section */}
@@ -126,7 +137,7 @@ const Index = () => {
             Welcome to <span className="bg-gradient-primary bg-clip-text text-transparent">Butts & Beyond Living</span>
           </h1>
           <p className="text-xl md:text-2xl mb-8 text-white/90 animate-fade-in">
-            Discover the latest in technology with unbeatable prices and fast delivery
+            Discover the latest in technology and modern furniture with unbeatable prices and fast delivery
           </p>
           <Button variant="hero" size="lg" className="animate-scale-in">
             Shop Now
@@ -137,19 +148,43 @@ const Index = () => {
       {/* Products Section */}
       <section className="py-16 px-4 max-w-7xl mx-auto">
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">Featured Products</h2>
-          <p className="text-muted-foreground text-lg">Discover our bestselling tech products</p>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">Our Products</h2>
+          <p className="text-muted-foreground text-lg">Discover our collection of tech gadgets and modern furniture</p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {sampleProducts.map((product) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              onAddToCart={addToCart}
-            />
-          ))}
-        </div>
+        <CategoryFilter
+          categories={categories}
+          selectedCategory={selectedCategory}
+          onCategoryChange={setSelectedCategory}
+        />
+
+        {isLoading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[...Array(8)].map((_, i) => (
+              <div key={i} className="animate-pulse">
+                <div className="bg-muted rounded-lg h-48 mb-4"></div>
+                <div className="bg-muted rounded h-4 mb-2"></div>
+                <div className="bg-muted rounded h-4 w-3/4"></div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {filteredProducts.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                onAddToCart={addToCart}
+              />
+            ))}
+          </div>
+        )}
+
+        {!isLoading && filteredProducts.length === 0 && (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground text-lg">No products found in this category.</p>
+          </div>
+        )}
       </section>
 
       <Cart
@@ -170,6 +205,13 @@ const Index = () => {
         }}
         items={cartItems}
         onPlaceOrder={handlePlaceOrder}
+      />
+
+      <AuthModal
+        isOpen={isAuthOpen}
+        onClose={() => setIsAuthOpen(false)}
+        mode={authMode}
+        onModeChange={setAuthMode}
       />
     </div>
   );
