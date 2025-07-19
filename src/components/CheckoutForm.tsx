@@ -50,8 +50,49 @@ export const CheckoutForm = ({
   const tax = total * 0.08;
   const finalTotal = total + shipping + tax;
 
+  // Format card number with spaces every 4 digits
+  const formatCardNumber = (value: string) => {
+    const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+    const matches = v.match(/\d{4,16}/g);
+    const match = matches && matches[0] || '';
+    const parts = [];
+    for (let i = 0, len = match.length; i < len; i += 4) {
+      parts.push(match.substring(i, i + 4));
+    }
+    if (parts.length) {
+      return parts.join(' ');
+    } else {
+      return v;
+    }
+  };
+
+  // Format expiry date MM/YY
+  const formatExpiryDate = (value: string) => {
+    const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+    if (v.length >= 2) {
+      return v.substring(0, 2) + '/' + v.substring(2, 4);
+    }
+    return v;
+  };
+
+  // Format CVV to only numbers
+  const formatCVV = (value: string) => {
+    return value.replace(/[^0-9]/gi, '').substring(0, 4);
+  };
+
   const handleInputChange = (field: keyof OrderData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    let formattedValue = value;
+
+    // Apply formatting based on field type
+    if (field === 'cardNumber') {
+      formattedValue = formatCardNumber(value);
+    } else if (field === 'expiryDate') {
+      formattedValue = formatExpiryDate(value);
+    } else if (field === 'cvv') {
+      formattedValue = formatCVV(value);
+    }
+
+    setFormData(prev => ({ ...prev, [field]: formattedValue }));
   };
 
   const handleSubmit = async () => {
@@ -297,6 +338,7 @@ export const CheckoutForm = ({
                             value={formData.cardNumber || ''}
                             onChange={(e) => handleInputChange('cardNumber', e.target.value)}
                             placeholder="1234 5678 9012 3456"
+                            maxLength={19}
                             required
                           />
                         </div>
@@ -308,6 +350,7 @@ export const CheckoutForm = ({
                               value={formData.expiryDate || ''}
                               onChange={(e) => handleInputChange('expiryDate', e.target.value)}
                               placeholder="MM/YY"
+                              maxLength={5}
                               required
                             />
                           </div>
@@ -318,6 +361,7 @@ export const CheckoutForm = ({
                               value={formData.cvv || ''}
                               onChange={(e) => handleInputChange('cvv', e.target.value)}
                               placeholder="123"
+                              maxLength={4}
                               required
                             />
                           </div>

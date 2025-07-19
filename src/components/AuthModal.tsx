@@ -1,11 +1,12 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { OTPVerification } from './OTPVerification';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -20,6 +21,8 @@ export const AuthModal = ({ isOpen, onClose, mode, onModeChange }: AuthModalProp
   const [fullName, setFullName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showOTPVerification, setShowOTPVerification] = useState(false);
+  const [pendingVerificationEmail, setPendingVerificationEmail] = useState('');
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -54,9 +57,26 @@ export const AuthModal = ({ isOpen, onClose, mode, onModeChange }: AuthModalProp
             console.error('Profile creation error:', profileError);
           }
 
+          // Send OTP for email verification
+          try {
+            await supabase.functions.invoke('send-otp', {
+              body: { email }
+            });
+            
+            setPendingVerificationEmail(email);
+            setShowOTPVerification(true);
+            onClose(); // Close signup modal
+          } catch (otpError) {
+            console.error('Failed to send OTP:', otpError);
+            toast({
+              title: "Account created!",
+              description: "Account created successfully, but email verification failed. You can still log in.",
+            });
+          }
+
           toast({
-            title: "Account created!",
-            description: "Please check your email to verify your account.",
+            title: "Account created successfully!",
+            description: "Please verify your email address.",
           });
         }
       } else {
@@ -73,10 +93,12 @@ export const AuthModal = ({ isOpen, onClose, mode, onModeChange }: AuthModalProp
         });
       }
 
-      onClose();
-      setEmail("");
-      setPassword("");
-      setFullName("");
+      if (mode === 'login') {
+        onClose();
+        setEmail("");
+        setPassword("");
+        setFullName("");
+      }
     } catch (error: any) {
       toast({
         title: "Error",
@@ -89,7 +111,8 @@ export const AuthModal = ({ isOpen, onClose, mode, onModeChange }: AuthModalProp
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <>
+      <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>
@@ -156,13 +179,11 @@ export const AuthModal = ({ isOpen, onClose, mode, onModeChange }: AuthModalProp
             type="submit"
             className="w-full"
             disabled={isLoading}
-            variant="hero"
           >
             {isLoading ? (
-              <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
-            ) : (
-              mode === 'login' ? 'Sign In' : 'Create Account'
-            )}
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : null}
+            {mode === 'login' ? 'Sign In' : 'Create Account'}
           </Button>
 
           <div className="text-center">
@@ -181,5 +202,18 @@ export const AuthModal = ({ isOpen, onClose, mode, onModeChange }: AuthModalProp
         </form>
       </DialogContent>
     </Dialog>
+
+    <OTPVerification
+      isOpen={showOTPVerification}
+      onClose={() => setShowOTPVerification(false)}
+      email={pendingVerificationEmail}
+      onVerified={() => {
+        toast({
+          title: "Email verified!",
+          description: "Your email has been successfully verified.",
+        });
+      }}
+    />
+  </>
   );
 };

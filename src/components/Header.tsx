@@ -41,7 +41,7 @@ export const Header = ({ cartItemsCount, onCartClick, onAuthClick }: HeaderProps
           {/* Logo */}
           <div className="flex items-center">
             <h1 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-              Butts & Beyond Living
+              TechHaven
             </h1>
           </div>
 
