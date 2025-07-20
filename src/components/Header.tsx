@@ -41,11 +41,9 @@ export const Header = ({ cartItemsCount, onCartClick, onAuthClick }: HeaderProps
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center">
-            <img 
-              src={logoImage} 
-              alt="TechHaven Logo" 
-              className="h-10 w-auto object-contain"
-            />
+            <h1 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+              Butts & Beyond Living
+            </h1>
           </div>
 
           {/* Desktop Navigation */}
