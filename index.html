@@ -18,7 +18,7 @@
   </head>
 <script src="https://js.stripe.com/v3/"></script>
 <script>
-  const stripe = Stripe("pk_live_51RlEJDA1utocpdWke9nJgen12NpcDtLMWjZAlbX4w3wRTw9SkhBcxqxlyXjUTtq1zC0UJZUBwu7SvpcQWQA1JS6e0009Gs1vwl");
+  const stripe = Stripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
   fetch("/create-payment-intent", {
     method: "POST",
