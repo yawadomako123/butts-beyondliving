@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { User as SupabaseUser } from "@supabase/supabase-js";
+import logoImage from "@/assets/logo.jpg";
 
 interface HeaderProps {
   cartItemsCount: number;
@@ -40,9 +41,11 @@ export const Header = ({ cartItemsCount, onCartClick, onAuthClick }: HeaderProps
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center">
-            <h1 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-              TechHaven
-            </h1>
+            <img 
+              src={logoImage} 
+              alt="TechHaven Logo" 
+              className="h-10 w-auto object-contain"
+            />
           </div>
 
           {/* Desktop Navigation */}
