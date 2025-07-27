@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Header } from "@/components/Header";
 import { ProductCard, Product } from "@/components/ProductCard";
 import { Cart, CartItem } from "@/components/Cart";
-import { CheckoutForm, OrderData } from "@/components/CheckoutForm";
 import { AuthModal } from "@/components/AuthModal";
 import { CategoryFilter } from "@/components/CategoryFilter";
 import { useToast } from "@/hooks/use-toast";
@@ -19,7 +18,6 @@ interface Category {
 const Index = () => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
   const [products, setProducts] = useState<Product[]>([]);
@@ -101,18 +99,26 @@ const Index = () => {
     setCartItems(prev => prev.filter(item => item.id !== id));
   };
 
-  const handleCheckout = () => {
-    setIsCartOpen(false);
-    setIsCheckoutOpen(true);
-  };
+  const handleCheckout = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('create-payment', {
+        body: { items: cartItems }
+      });
 
-  const handlePlaceOrder = (orderData: OrderData) => {
-    toast({
-      title: "Order placed successfully!",
-      description: "Thank you for your purchase. You'll receive a confirmation email shortly.",
-    });
-    setCartItems([]);
-    setIsCheckoutOpen(false);
+      if (error) throw error;
+      
+      if (data?.url) {
+        // Redirect to Stripe checkout
+        window.location.href = data.url;
+      }
+    } catch (error) {
+      console.error('Payment error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create payment session. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const cartItemsCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
@@ -196,16 +202,6 @@ const Index = () => {
         onCheckout={handleCheckout}
       />
 
-      <CheckoutForm
-        isOpen={isCheckoutOpen}
-        onClose={() => setIsCheckoutOpen(false)}
-        onBack={() => {
-          setIsCheckoutOpen(false);
-          setIsCartOpen(true);
-        }}
-        items={cartItems}
-        onPlaceOrder={handlePlaceOrder}
-      />
 
       <AuthModal
         isOpen={isAuthOpen}

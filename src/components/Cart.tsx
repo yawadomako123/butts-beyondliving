@@ -133,7 +133,7 @@ export const Cart = ({
                     variant="hero"
                     size="lg"
                   >
-                    Proceed to Checkout
+                    Checkout with Stripe
                   </Button>
                   <Button
                     onClick={onClose}
