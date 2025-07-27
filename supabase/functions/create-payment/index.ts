@@ -37,16 +37,20 @@ serve(async (req) => {
       quantity: item.quantity,
     }));
 
-    // Create a one-time payment session
+    // Create a one-time payment session with immediate charge
     const session = await stripe.checkout.sessions.create({
       line_items: lineItems,
-      mode: "payment",
+      mode: "payment", // This ensures immediate one-time payment/charge
+      payment_method_types: ['card'], // Explicitly specify card payments
       success_url: `${req.headers.get("origin")}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.headers.get("origin")}/payment-canceled`,
       shipping_address_collection: {
-        allowed_countries: ['US', 'CA'],
+        allowed_countries: ['US', 'CA', 'GB', 'AU', 'DE', 'FR'],
       },
       billing_address_collection: 'required',
+      payment_intent_data: {
+        capture_method: 'automatic', // Ensure immediate capture/charge
+      },
     });
 
     return new Response(JSON.stringify({ url: session.url }), {
