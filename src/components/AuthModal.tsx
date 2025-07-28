@@ -6,7 +6,6 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
-import { OTPVerification } from './OTPVerification';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -21,8 +20,6 @@ export const AuthModal = ({ isOpen, onClose, mode, onModeChange }: AuthModalProp
   const [fullName, setFullName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [showOTPVerification, setShowOTPVerification] = useState(false);
-  const [pendingVerificationEmail, setPendingVerificationEmail] = useState('');
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -31,6 +28,8 @@ export const AuthModal = ({ isOpen, onClose, mode, onModeChange }: AuthModalProp
 
     try {
       if (mode === 'signup') {
+        const redirectUrl = `${window.location.origin}/`;
+        
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
@@ -38,6 +37,7 @@ export const AuthModal = ({ isOpen, onClose, mode, onModeChange }: AuthModalProp
             data: {
               full_name: fullName,
             },
+            emailRedirectTo: redirectUrl
           },
         });
 
@@ -57,27 +57,15 @@ export const AuthModal = ({ isOpen, onClose, mode, onModeChange }: AuthModalProp
             console.error('Profile creation error:', profileError);
           }
 
-          // Send OTP for email verification
-          try {
-            await supabase.functions.invoke('send-otp', {
-              body: { email }
-            });
-            
-            setPendingVerificationEmail(email);
-            setShowOTPVerification(true);
-            onClose(); // Close signup modal
-          } catch (otpError) {
-            console.error('Failed to send OTP:', otpError);
-            toast({
-              title: "Account created!",
-              description: "Account created successfully, but email verification failed. You can still log in.",
-            });
-          }
-
           toast({
             title: "Account created successfully!",
-            description: "Please verify your email address.",
+            description: "Please check your email and click the confirmation link to verify your account.",
           });
+          
+          onClose();
+          setEmail("");
+          setPassword("");
+          setFullName("");
         }
       } else {
         const { error } = await supabase.auth.signInWithPassword({
@@ -91,18 +79,27 @@ export const AuthModal = ({ isOpen, onClose, mode, onModeChange }: AuthModalProp
           title: "Welcome back!",
           description: "You have successfully logged in.",
         });
-      }
-
-      if (mode === 'login') {
+        
         onClose();
         setEmail("");
         setPassword("");
         setFullName("");
       }
     } catch (error: any) {
+      let errorMessage = error.message;
+      
+      // Handle specific auth errors
+      if (error.message.includes('Invalid login credentials')) {
+        errorMessage = 'Invalid email or password. Please check your credentials.';
+      } else if (error.message.includes('Email not confirmed')) {
+        errorMessage = 'Please check your email and click the confirmation link to verify your account.';
+      } else if (error.message.includes('User already registered')) {
+        errorMessage = 'An account with this email already exists. Please sign in instead.';
+      }
+      
       toast({
         title: "Error",
-        description: error.message,
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -111,8 +108,7 @@ export const AuthModal = ({ isOpen, onClose, mode, onModeChange }: AuthModalProp
   };
 
   return (
-    <>
-      <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>
@@ -202,18 +198,5 @@ export const AuthModal = ({ isOpen, onClose, mode, onModeChange }: AuthModalProp
         </form>
       </DialogContent>
     </Dialog>
-
-    <OTPVerification
-      isOpen={showOTPVerification}
-      onClose={() => setShowOTPVerification(false)}
-      email={pendingVerificationEmail}
-      onVerified={() => {
-        toast({
-          title: "Email verified!",
-          description: "Your email has been successfully verified.",
-        });
-      }}
-    />
-  </>
   );
 };
