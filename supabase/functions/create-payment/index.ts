@@ -13,16 +13,30 @@ serve(async (req) => {
   }
 
   try {
+    console.log("Create payment function called");
+    
     // Get payment details from request
     const { items } = await req.json();
+    console.log("Received items:", JSON.stringify(items, null, 2));
+    
+    if (!items || items.length === 0) {
+      throw new Error("No items provided for payment");
+    }
     
     // Calculate total amount
     const totalAmount = items.reduce((sum: number, item: any) => sum + (item.price * item.quantity * 100), 0);
+    console.log("Total amount (in cents):", totalAmount);
 
     // Initialize Stripe
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
+    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
+    if (!stripeKey) {
+      throw new Error("STRIPE_SECRET_KEY not found in environment variables");
+    }
+    
+    const stripe = new Stripe(stripeKey, {
       apiVersion: "2023-10-16",
     });
+    console.log("Stripe initialized successfully");
 
     // Create line items for Stripe
     const lineItems = items.map((item: any) => ({
@@ -36,6 +50,8 @@ serve(async (req) => {
       },
       quantity: item.quantity,
     }));
+
+    console.log("Creating line items:", JSON.stringify(lineItems, null, 2));
 
     // Create a one-time payment session with immediate charge
     const session = await stripe.checkout.sessions.create({
@@ -52,6 +68,9 @@ serve(async (req) => {
         capture_method: 'automatic', // Ensure immediate capture/charge
       },
     });
+
+    console.log("Stripe session created successfully:", session.id);
+    console.log("Session URL:", session.url);
 
     return new Response(JSON.stringify({ url: session.url }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
