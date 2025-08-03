@@ -185,30 +185,63 @@ const Index = () => {
       />
 
       {/* Hero Section */}
-      <section className="relative h-[70vh] flex items-center justify-center overflow-hidden">
-        <div 
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url(${heroImage})` }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-black/30" />
-        <div className="relative z-10 text-center text-white max-w-4xl mx-auto px-4">
-          <h1 className="text-5xl md:text-7xl font-bold mb-6 animate-fade-in">
-            Welcome to <span className="bg-gradient-primary bg-clip-text text-transparent">Butts & Beyond Living</span>
-          </h1>
-          <p className="text-xl md:text-2xl mb-8 text-white/90 animate-fade-in">
-            Discover the latest in technology and modern furniture with unbeatable prices and fast delivery
-          </p>
-          <Button variant="hero" size="lg" className="animate-scale-in">
-            Shop Now
-          </Button>
+      <section className="relative min-h-[80vh] flex items-center justify-center overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-hero opacity-10" />
+        <div className="absolute inset-0 bg-gradient-mesh" />
+        <div className="relative z-10 text-center max-w-6xl mx-auto px-4 py-20">
+          <div className="space-y-8 animate-fade-in">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm">
+              <span className="w-2 h-2 bg-primary rounded-full animate-pulse"></span>
+              <span className="text-sm font-medium text-primary">Premium Quality Products</span>
+            </div>
+            
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold leading-tight">
+              Discover Amazing Products at{' '}
+              <span className="bg-gradient-hero bg-clip-text text-transparent">
+                Butts & Beyond Living
+              </span>
+            </h1>
+            
+            <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+              Transform your space with our curated collection of premium electronics, furniture, and lifestyle products. Experience quality that lasts.
+            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
+              <Button 
+                size="lg" 
+                className="bg-gradient-primary hover:scale-105 transition-all duration-300 shadow-glow px-8 py-4 text-lg font-semibold"
+              >
+                Explore Collection
+              </Button>
+              <Button 
+                variant="outline" 
+                size="lg"
+                className="border-primary/30 hover:border-primary hover:bg-primary/5 transition-all duration-300 px-8 py-4"
+              >
+                View Deals
+              </Button>
+            </div>
+          </div>
         </div>
+        
+        {/* Floating Elements */}
+        <div className="absolute top-20 left-10 w-20 h-20 bg-gradient-primary rounded-full opacity-20 animate-pulse"></div>
+        <div className="absolute bottom-20 right-10 w-16 h-16 bg-gradient-to-br from-accent to-warning rounded-full opacity-20 animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 right-20 w-12 h-12 bg-gradient-to-br from-warning to-success rounded-full opacity-20 animate-pulse delay-500"></div>
       </section>
 
       {/* Products Section */}
-      <section className="py-16 px-4 max-w-7xl mx-auto">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">Our Products</h2>
-          <p className="text-muted-foreground text-lg">Discover our collection of tech gadgets and modern furniture</p>
+      <section className="py-20 px-4 max-w-7xl mx-auto">
+        <div className="text-center mb-16 space-y-6">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/10 border border-accent/20">
+            <span className="text-sm font-medium text-accent">Featured Collection</span>
+          </div>
+          <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
+            Handpicked Products
+          </h2>
+          <p className="text-muted-foreground text-xl max-w-2xl mx-auto leading-relaxed">
+            Every product in our collection is carefully selected for quality, design, and value. Find exactly what you're looking for.
+          </p>
         </div>
 
         <CategoryFilter
@@ -218,30 +251,50 @@ const Index = () => {
         />
 
         {isLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
             {[...Array(8)].map((_, i) => (
-              <div key={i} className="animate-pulse">
-                <div className="bg-muted rounded-lg h-48 mb-4"></div>
-                <div className="bg-muted rounded h-4 mb-2"></div>
-                <div className="bg-muted rounded h-4 w-3/4"></div>
+              <div key={i} className="animate-pulse space-y-4">
+                <div className="bg-gradient-to-br from-muted to-muted/50 rounded-2xl h-64"></div>
+                <div className="space-y-3 p-2">
+                  <div className="bg-muted rounded-lg h-4"></div>
+                  <div className="bg-muted rounded-lg h-4 w-3/4"></div>
+                  <div className="bg-muted rounded-lg h-6 w-1/2"></div>
+                  <div className="bg-muted rounded-xl h-10"></div>
+                </div>
               </div>
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {filteredProducts.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                onAddToCart={addToCart}
-              />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            {filteredProducts.map((product, index) => (
+              <div 
+                key={product.id} 
+                className="animate-fade-in"
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                <ProductCard
+                  product={product}
+                  onAddToCart={addToCart}
+                />
+              </div>
             ))}
           </div>
         )}
 
         {!isLoading && filteredProducts.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground text-lg">No products found in this category.</p>
+          <div className="text-center py-20">
+            <div className="w-24 h-24 mx-auto mb-6 bg-gradient-primary rounded-full flex items-center justify-center opacity-20">
+              <span className="text-2xl">🔍</span>
+            </div>
+            <h3 className="text-2xl font-semibold mb-3">No products found</h3>
+            <p className="text-muted-foreground text-lg mb-6">Try adjusting your filters or browse all products.</p>
+            <Button 
+              variant="outline" 
+              onClick={() => setSelectedCategory(null)}
+              className="px-6 py-2"
+            >
+              Show All Products
+            </Button>
           </div>
         )}
       </section>

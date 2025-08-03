@@ -36,33 +36,37 @@ export const Header = ({ cartItemsCount, onCartClick, onAuthClick }: HeaderProps
   };
 
   return (
-    <header className="bg-background border-b border-border sticky top-0 z-50 backdrop-blur-sm bg-background/80">
+    <header className="bg-background/80 border-b border-border/50 sticky top-0 z-50 backdrop-blur-xl bg-gradient-to-r from-background via-background to-background/95">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-20">
           {/* Logo */}
           <div className="flex items-center">
-            <h1 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-              Butts & Beyond Living
-            </h1>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-primary flex items-center justify-center shadow-glow">
+                <span className="text-white font-bold text-lg">B</span>
+              </div>
+              <h1 className="text-2xl font-bold bg-gradient-hero bg-clip-text text-transparent">
+                Butts & Beyond Living
+              </h1>
+            </div>
           </div>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            <a href="#" className="text-foreground hover:text-primary transition-colors">Home</a>
-            <a href="#" className="text-foreground hover:text-primary transition-colors">Laptops</a>
-            <a href="#" className="text-foreground hover:text-primary transition-colors">Phones</a>
-            <a href="#" className="text-foreground hover:text-primary transition-colors">Accessories</a>
-            <a href="#" className="text-foreground hover:text-primary transition-colors">Deals</a>
+            <a href="#" className="text-foreground hover:text-primary transition-all duration-300 font-medium relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-gradient-primary after:transition-all after:duration-300 hover:after:w-full">Home</a>
+            <a href="#" className="text-foreground hover:text-primary transition-all duration-300 font-medium relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-gradient-primary after:transition-all after:duration-300 hover:after:w-full">Electronics</a>
+            <a href="#" className="text-foreground hover:text-primary transition-all duration-300 font-medium relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-gradient-primary after:transition-all after:duration-300 hover:after:w-full">Office</a>
+            <a href="#" className="text-foreground hover:text-primary transition-all duration-300 font-medium relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-gradient-primary after:transition-all after:duration-300 hover:after:w-full">Deals</a>
           </nav>
 
           {/* Search Bar */}
-          <div className="hidden md:flex items-center flex-1 max-w-md mx-8">
+          <div className="hidden md:flex items-center flex-1 max-w-xl mx-8">
             <div className="relative w-full">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
               <Input
                 type="search"
-                placeholder="Search tech products..."
-                className="pl-10 bg-muted/50 border-none focus:bg-background"
+                placeholder="Search amazing products..."
+                className="pl-12 pr-4 h-12 bg-muted/30 border border-border/50 rounded-2xl focus:bg-background/80 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all duration-300 backdrop-blur-sm"
               />
             </div>
           </div>
@@ -87,15 +91,15 @@ export const Header = ({ cartItemsCount, onCartClick, onAuthClick }: HeaderProps
             )}
             
             <Button
-              variant="hero"
-              size="sm"
+              variant="default"
+              size="lg"
               onClick={onCartClick}
-              className="relative"
+              className="relative bg-gradient-primary hover:scale-105 transition-all duration-300 shadow-glow"
             >
               <ShoppingCart className="w-4 h-4 mr-2" />
               Cart
               {cartItemsCount > 0 && (
-                <Badge className="absolute -top-2 -right-2 bg-warning text-warning-foreground min-w-5 h-5 flex items-center justify-center text-xs">
+                <Badge className="absolute -top-2 -right-2 bg-warning text-warning-foreground min-w-6 h-6 flex items-center justify-center text-xs font-bold animate-pulse">
                   {cartItemsCount}
                 </Badge>
               )}
