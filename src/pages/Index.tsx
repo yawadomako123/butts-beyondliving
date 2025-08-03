@@ -122,22 +122,53 @@ const Index = () => {
   };
 
   const handleCheckout = async () => {
+    // Check if user is authenticated
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to proceed with checkout.",
+        variant: "destructive",
+      });
+      setIsAuthOpen(true);
+      return;
+    }
+
+    // Check if cart has items
+    if (cartItems.length === 0) {
+      toast({
+        title: "Empty Cart",
+        description: "Please add items to your cart before checkout.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
+      console.log('Starting checkout process...', { cartItems, userEmail: user.email });
+      
       const { data, error } = await supabase.functions.invoke('create-payment', {
         body: { items: cartItems }
       });
 
-      if (error) throw error;
+      console.log('Payment response:', { data, error });
+
+      if (error) {
+        console.error('Supabase function error:', error);
+        throw new Error(error.message || 'Failed to create payment session');
+      }
       
       if (data?.url) {
+        console.log('Redirecting to Stripe checkout:', data.url);
         // Redirect to Stripe checkout
         window.location.href = data.url;
+      } else {
+        throw new Error('No checkout URL received from payment service');
       }
     } catch (error) {
       console.error('Payment error:', error);
       toast({
-        title: "Error",
-        description: "Failed to create payment session. Please try again.",
+        title: "Payment Error",
+        description: error instanceof Error ? error.message : "Failed to create payment session. Please try again.",
         variant: "destructive",
       });
     }
